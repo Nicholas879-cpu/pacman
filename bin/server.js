@@ -3,6 +3,9 @@
 /**
  * Module dependencies.
  */
+const password = "password123";
+
+
 
 var app = require('../app');
 //var debug = require('debug')('pacman:server');
