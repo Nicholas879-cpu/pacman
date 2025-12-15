@@ -1,0 +1,17 @@
+services:
+  mongo:
+    image: mongo:3.4
+    ports:
+      - "27017:27017"
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      MONGO_SERVICE_HOST: mongo
+      MY_MONGO_PORT: "27017"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongo
