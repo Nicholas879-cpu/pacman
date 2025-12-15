@@ -1,0 +1,40 @@
+name: DAST (OWASP ZAP)
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [ "master" ]
+  pull_request: {}
+
+jobs:
+  zap:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start app + mongo
+        run: |
+          docker compose -f docker-compose.ci.yml up -d --build
+          echo "Waiting for app..."
+          for i in {1..30}; do
+            if curl -sSf http://localhost:8080 >/dev/null; then
+              echo "App is up"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "App did not start in time"
+          docker compose -f docker-compose.ci.yml logs
+          exit 1
+
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: "http://localhost:8080"
+          cmd_options: "-a"
+
+      - name: Stop containers
+        if: always()
+        run: docker compose -f docker-compose.ci.yml down -v
