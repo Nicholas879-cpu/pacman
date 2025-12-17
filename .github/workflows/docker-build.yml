@@ -1,4 +1,4 @@
-name: Docker Build
+name: Docker Build & Container Scan (Trivy)
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
       - master
 
 jobs:
-  docker-build:
+  build-and-scan:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,6 +23,16 @@ jobs:
             -t pacman-nodejs:ci \
             -f docker/Dockerfile .
 
-      - name: Pull MongoDB 3.4 image
+      - name: Run Trivy container scan
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: 'pacman-nodejs:ci'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Pull MongoDB 3.4 image (runtime dependency)
         run: |
           docker pull mongo:3.4
