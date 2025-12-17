@@ -23,7 +23,7 @@ jobs:
             -t pacman-nodejs:ci \
             -f docker/Dockerfile .
 
-      - name: Run Trivy container scan
+      - name: Run Trivy scan (Node.js app image)
         uses: aquasecurity/trivy-action@0.33.1
         with:
           image-ref: 'pacman-nodejs:ci'
@@ -36,3 +36,13 @@ jobs:
       - name: Pull MongoDB 3.4 image (runtime dependency)
         run: |
           docker pull mongo:3.4
+
+      - name: Run Trivy scan (MongoDB image)
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: 'mongo:3.4'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
