@@ -1,19 +1,21 @@
 name: Docker Build & Container Scan (Trivy)
 
 on:
-  pull_request:
-  push:
-    branches:
-      - master
+  workflow_dispatch: {}
+  workflow_run:
+    workflows: ["Semgrep"]
+    types:
+      - completed
 
 jobs:
   build-and-scan:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     # 🔹 Shared image metadata (used by Trivy + DAST)
     env:
       IMAGE_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/pacman-nodejs
-      IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
+      IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
 
     steps:
       - name: Checkout code
@@ -22,7 +24,7 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
 
-      # 🔹 Build image using SHA tag (not :ci)
+      # 🔹 Build image using SHA tag
       - name: Build Node.js app image
         run: |
           docker build \
