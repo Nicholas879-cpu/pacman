@@ -2,16 +2,21 @@ name: DAST (OWASP ZAP)
 
 on:
   workflow_dispatch: {}
-  push:
-    branches: [ "master" ]
-  pull_request: {}
+  workflow_run:
+    workflows: ["Docker Build & Container Scan (Trivy)"]
+    types:
+      - completed
 
 jobs:
   zap:
+    # only run if the build workflow succeeded
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+
     env:
       IMAGE_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/pacman-nodejs
-      IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
+      # when triggered by workflow_run, use the build's commit SHA
+      IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
 
     steps:
       - name: Checkout
@@ -23,8 +28,16 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # optional but nice: small retry to handle Docker Hub tag propagation delay
       - name: Pull app image (SHA tag)
-        run: docker pull "${IMAGE_REPO}:${IMAGE_TAG}"
+        run: |
+          for i in 1 2 3 4 5; do
+            docker pull "${IMAGE_REPO}:${IMAGE_TAG}" && exit 0
+            echo "Image not available yet, retrying in 5s... ($i/5)"
+            sleep 5
+          done
+          echo "Failed to pull image after retries"
+          exit 1
 
       - name: Start app + mongo
         run: |
