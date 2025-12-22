@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/pacman-nodejs
-      IMAGE_TAG: ${{ github.sha }}
+      IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
 
     steps:
       - name: Checkout
