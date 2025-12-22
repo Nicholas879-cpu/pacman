@@ -58,6 +58,9 @@ jobs:
         uses: zaproxy/action-baseline@v0.15.0
         with:
           target: "http://localhost:8080"
+          allow_issue_writing: false
+          fail_action: false
+          cmd_options: "-a"
 
       - name: Stop containers
         if: always()
