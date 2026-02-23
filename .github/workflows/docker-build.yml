@@ -33,7 +33,7 @@ jobs:
 
       # 🔹 Trivy scan – app image (same SHA tag)
       - name: Run Trivy scan (app image)
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.34.1
         with:
           image-ref: '${{ env.IMAGE_REPO }}:${{ env.IMAGE_TAG }}'
           format: 'table'
@@ -47,7 +47,7 @@ jobs:
         run: docker pull mongo:3.4
 
       - name: Run Trivy scan (mongo image)
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.34.1
         with:
           image-ref: 'mongo:3.4'
           format: 'table'
